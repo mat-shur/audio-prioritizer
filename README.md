@@ -29,7 +29,7 @@ Download .pyw from repository and run it (just double click).
 
 4) Close the script interface by clicking on the X (it will minimize to the system tray).
 
-- to restore the interface, double-click on the icon in the system tray
+- to restore the interface, left-click on the icon in the system tray
 - to close the script, right-click on the icon in the system tray and select "quit"
 
 
