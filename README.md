@@ -45,3 +45,8 @@ Download .pyw from repository and run it (just double click).
 - PyQt5
 - Singletons
 - pycaw (Python Core Audio Windows Library)
+
+## To Do
+- Saving priorities on restart
+- Removing unnecessary individual programs from the list
+- Updating slider styles in the list
