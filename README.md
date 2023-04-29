@@ -32,6 +32,7 @@ Download .pyw from repository and run it (just double click).
 - to restore the interface, left-click on the icon in the system tray
 - to close the script, right-click on the icon in the system tray and select "quit"
 
+`if multiple priority programs are selected, the more prioritized one will always mute the less prioritized ones`
 
 ## Screenshot
 <p align="center">
