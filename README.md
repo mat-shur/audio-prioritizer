@@ -21,7 +21,9 @@ Download .pyw from repository and run it (just double click).
 1) Turn on music in the programs for which you want to set priorities.
 
 2) In the script interface, set the priorities according to the screenshot below.
-![](/Screenshots/introduction.png?raw=true "howto")
+<p align="center">
+  <img src="https://github.com/mat-shur/audio-prioritizer/blob/main/Screenshots/introduction.png?raw=true" alt="howto"/>
+</p>
 
 3) Adjust the program muting level with the slider (to what level to mute non-priority programs).
 
@@ -32,8 +34,9 @@ Download .pyw from repository and run it (just double click).
 
 
 ## Screenshot
-
-![](/Screenshots/example.jpg?raw=true "Example")
+<p align="center">
+  <img src="https://github.com/mat-shur/audio-prioritizer/blob/main/Screenshots/example.jpg?raw=true" alt="example"/>
+</p>
 
 ## Technologies
 
