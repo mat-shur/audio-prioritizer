@@ -150,6 +150,11 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.parallel_timer = QTimer()
+        self.parallel_timer.setInterval(100)
+        self.parallel_timer.timeout.connect(self.audio_prioritizer)
+        self.parallel_timer.start()
+
         self.layout = QVBoxLayout(self)
 
         self.close_button = QPushButton('X')
@@ -261,6 +266,20 @@ class MainWindow(QWidget):
         else:
             event.ignore()
 
+    def nativeEvent(self, event_type, message):
+        if event_type == "windows_generic_MSG":
+            msg = ctypes.wintypes.MSG.from_address(message.__int__())
+
+            if int(msg.message) == 536 and msg.wParam == 4:
+                if self.parallel_timer.isActive():
+                    self.parallel_timer.stop()
+
+            elif int(msg.message) == 536 and msg.wParam == 18:
+                if not self.parallel_timer.isActive():
+                    self.parallel_timer.start()
+
+        return super().nativeEvent(event_type, message)
+
     def audio_prioritizer(self):
         sessions = AudioUtilities.GetAllSessions()
 
@@ -352,12 +371,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-
-    # Create "thread"
-    window.timer = QTimer()
-    window.timer.setInterval(100)
-    window.timer.timeout.connect(window.audio_prioritizer)
-    window.timer.start()
 
     # Start
     sys.exit(app.exec_())

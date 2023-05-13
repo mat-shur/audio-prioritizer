@@ -1,4 +1,4 @@
-import signal, ctypes, sys, base64, subprocess
+import signal, ctypes, sys, base64, subprocess, datetime
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('AudioPrioritizer.AudioPrioritizer.AudioPrioritizer.0.1')
 icon_data = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFKUlEQVR4nO1Za2wUVRSeuiAiCpbSveduFwpLFa3GCCUKTfeebRUpkGgQqiAPlcQfhpdvSfyhUWMqSaOYtIq0s1qkO6nG+I5/jInxFXzESGyZQUwEq0ZjG1IRG6xj7rrTOTuZ2e5sd6kl+yU3pHfunvt99zzuA0UpoogiijgrwRjGgIu3GRdfAOBT1dXV5yoTBQB4D3AcBo6m1RjHF5X/P5oCAOJZStxuYrCqqnGKP1v4pvwdAG5SCg3Oa84HwDfSVh3ERwzwd+vvstm1oezt4aW2HeyfM6eutIDkcRZw8WnaigNqlZV4HgD25SJAUZoCDEQvsddcEPKMRecxQN1BXk5WIr/nLkCRv20iXjgJUFeeV/KhkFgIXPxMyA8zjtscJEYEbN/V2dje1esqgvPo9TJUZNjJcEx1lzDAL+2FEQ/njXwwFLsWOJ4g8X4KILbGOY4K2PPCQTOuGZ+72QMQCeLB+0fm4eJW0t+nKDWTsycZbGDBYF3E2RjD2xngEE0yzkXUzQbnsZ8cAvrcxrGQ2EIW40d736iZzEAcJ15YmZH0zJlXT2dctAEXv7iXw/TGAI8B1FW72XrptZ6yyPxVQ9kIUJJE8QdrLOditfVF5hQpx3FP8owtm8ZAHM6GeMrYoXC4ocLN1r7uI1VxTTcuWXCjmZ0ARWEcH7U3PvEKEbCYeltRcJKrAbnlOwhKLxx1a4yLVysr8SI3O2riSG1cM36La4bpJkAmaWqP6JfJ61H7dWJSJvMx2zvRRe4CuDhkDZLJo+SAji5jrarppyR5LwGMRRtIYn5Cf884PiGjgPPoBsfiHiDHku1eAk5bgzzdlAFqwtgZ1/Rhi7yXAOk5BuKvVP8/jOHc0WwzFt066rmKho+XIbmZAIjNdFPp7jYDakJ/jhLPJOA/O+J1Eu8PZVm2rfD60JeAzs6vp8U1vU3G9cJFG5Lf5b9uhLMVIEME7BV9x8mlrKz2wjQBwboIKbPHfQlQNWOvRYiOGYuAUKh+AbH1fbqXhZqq+SqtkKS4/OFTgN6fbwFyvwHb1gky3TnAxd+pUBmyu3ESEXDalwBKKF8CSkuvm0FCYsCaq7wcLyBEBwmNEpnwVuJbh8VxE+AVQowtDdJ9yOqX9wE3weMmAAA3uiWx3KRI/7e2Z+rne+XMOAlIK6MPjnCA6G1kjm5bWGz5qGWUAf5pDQqHl0wtlADnRgZQXznCgWOLvUuLR2xh4j4iuM3DA+IzEn+7Z1WIi2X9bWn92LRaPgRkPEoAvUaKFaT/6REBLLrV3QMct1GCo7VcBWRzmAMuBuWdOv1Emrz9fSMT3VVAsgaT2MzcYmPKAfcFFI+5xb9flLAQ3gFcvAWAhjw6X3b5TcPVV6w1ZZsXWZEk37BsR14FhMNLpjKOv7pdaMYMVTPiXgQ7Dhw2793VZT7Z8v6YBHCOd6aXyaaA/U2slt993Ycp9u83pscTuqom9AEnwfWbdycnDYXrzbt27MtZAJBLPed4t9UfDIkb/JxafYNxfJ7mxrqNzaaa0HPwQNTtWUXaP1iQZxUL8l6QNglHc/mqB8z2l3t8J7ETaasPeDJT9cn7u+g1S7eYrR1fjUFAU4Bx7CH7xTMFIe+YsJWKuPKqdebcSGNOAnjaBV8MyPdX5UwgyMVO5/8NyBapWpmsWH48AGfyeZ2CMXFz8qmRCFhzy+NWYmedA+MK+Vonr4QVsxveW7+p+TtSmSaGAIo97xpT4gmjSwpQNf0DZaKivat38d7uozPGm0cRRZxN+BeIFgQuVPlcdAAAAABJRU5ErkJggg=="
 
@@ -12,7 +12,7 @@ for module in required_modules:
 from tendo import singleton
 
 from PyQt5.QtWidgets import QSystemTrayIcon, QMenu, QAction, QFrame, QApplication, QSlider, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, QPushButton, QLabel
-from PyQt5.QtCore import Qt, QTimer, QCoreApplication
+from PyQt5.QtCore import Qt, QEvent, QTimer, QCoreApplication, QAbstractNativeEventFilter
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume, IAudioMeterInformation
@@ -150,6 +150,11 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.parallel_timer = QTimer()
+        self.parallel_timer.setInterval(100)
+        self.parallel_timer.timeout.connect(self.audio_prioritizer)
+        self.parallel_timer.start()
+
         self.layout = QVBoxLayout(self)
 
         self.close_button = QPushButton('X')
@@ -261,6 +266,20 @@ class MainWindow(QWidget):
         else:
             event.ignore()
 
+    def nativeEvent(self, event_type, message):
+        if event_type == "windows_generic_MSG":
+            msg = ctypes.wintypes.MSG.from_address(message.__int__())
+
+            if int(msg.message) == 536 and msg.wParam == 4:
+                if self.parallel_timer.isActive():
+                    self.parallel_timer.stop()
+
+            elif int(msg.message) == 536 and msg.wParam == 18:
+                if not self.parallel_timer.isActive():
+                    self.parallel_timer.start()
+
+        return super().nativeEvent(event_type, message)
+
     def audio_prioritizer(self):
         sessions = AudioUtilities.GetAllSessions()
 
@@ -352,12 +371,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
-
-    # Create "thread"
-    window.timer = QTimer()
-    window.timer.setInterval(100)
-    window.timer.timeout.connect(window.audio_prioritizer)
-    window.timer.start()
 
     # Start
     sys.exit(app.exec_())
