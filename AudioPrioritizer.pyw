@@ -11,7 +11,7 @@ for module in required_modules:
 
 from tendo import singleton
 
-from PyQt5.QtWidgets import QSystemTrayIcon, QMenu, QAction, QFrame, QApplication, QSlider, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, QPushButton, QLabel
+from PyQt5.QtWidgets import QSystemTrayIcon, QScrollBar, QMenu, QAction, QFrame, QApplication, QSlider, QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem, QPushButton, QLabel
 from PyQt5.QtCore import Qt, QTimer, QCoreApplication
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 
@@ -30,6 +30,15 @@ class UnselectableListWidget(QListWidget):
 
         self.setSelectionMode(self.NoSelection)
         self.setFocusPolicy(Qt.NoFocus)
+
+        self.vertical_scroll = QScrollBar(Qt.Vertical)
+        self.horizontal_scroll = QScrollBar(Qt.Horizontal)
+
+        self.vertical_scroll.setStyleSheet("QScrollBar:vertical {width: 5px} QScrollBar::handle:vertical {background: white} QScrollBar::add-line:vertical {background: none;} QScrollBar::add-page:vertical {background: none;} QScrollBar::sub-line:vertical {background: none;} QScrollBar::sub-page:vertical {background: none;}")
+        self.horizontal_scroll.setStyleSheet("QScrollBar:horizontal {height: 5px;} QScrollBar::handle:horizontal {background: white;} QScrollBar::add-line:horizontal {background: none;} QScrollBar::add-page:horizontal {background: none;} QScrollBar::sub-line:horizontal {background: none;} QScrollBar::sub-page:horizontal {background: none;}")
+
+        self.setVerticalScrollBar(self.vertical_scroll)
+        self.setHorizontalScrollBar(self.horizontal_scroll)
 
         self.setStyleSheet("color: white; background-color: #2b2b2b; border: none; outline: none;")
         self.setMaximumWidth(220)
@@ -324,7 +333,7 @@ class MainWindow(QWidget):
                     self.list_widget.items[p_name]['reg_time'] = datetime.datetime.now().timestamp()
 
         # update
-        for name in self.list_widget.items:
+        for name in list(self.list_widget.items):
             volume = self.list_widget.items[name]['session']._ctl.QueryInterface(IAudioMeterInformation)
             self.list_widget.items[name]['is_playing'] = self.list_widget.items[name]['actual_sound'] > 0
             self.list_widget.items[name]['actual_sound'] = volume.GetPeakValue()
@@ -334,7 +343,7 @@ class MainWindow(QWidget):
 
                 # delete forgotten processes
                 if name not in self.list_widget.prio_items and name not in self.list_widget.totalmute_items:
-                    if self.list_widget.items[name]['reg_time'] + 5 * 60 < datetime.datetime.now().timestamp():
+                    if self.list_widget.items[name]['reg_time'] + 5*60 < datetime.datetime.now().timestamp():
                         del self.list_widget.items[name]
                         self.list_widget.remove_item(name)
 
