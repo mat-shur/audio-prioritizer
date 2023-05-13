@@ -1,4 +1,4 @@
-import signal, ctypes, sys, base64, subprocess
+import signal, ctypes, sys, base64, subprocess, datetime
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('AudioPrioritizer.AudioPrioritizer.AudioPrioritizer.0.1')
 icon_data = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFKUlEQVR4nO1Za2wUVRSeuiAiCpbSveduFwpLFa3GCCUKTfeebRUpkGgQqiAPlcQfhpdvSfyhUWMqSaOYtIq0s1qkO6nG+I5/jInxFXzESGyZQUwEq0ZjG1IRG6xj7rrTOTuZ2e5sd6kl+yU3pHfunvt99zzuA0UpoogiijgrwRjGgIu3GRdfAOBT1dXV5yoTBQB4D3AcBo6m1RjHF5X/P5oCAOJZStxuYrCqqnGKP1v4pvwdAG5SCg3Oa84HwDfSVh3ERwzwd+vvstm1oezt4aW2HeyfM6eutIDkcRZw8WnaigNqlZV4HgD25SJAUZoCDEQvsddcEPKMRecxQN1BXk5WIr/nLkCRv20iXjgJUFeeV/KhkFgIXPxMyA8zjtscJEYEbN/V2dje1esqgvPo9TJUZNjJcEx1lzDAL+2FEQ/njXwwFLsWOJ4g8X4KILbGOY4K2PPCQTOuGZ+72QMQCeLB+0fm4eJW0t+nKDWTsycZbGDBYF3E2RjD2xngEE0yzkXUzQbnsZ8cAvrcxrGQ2EIW40d736iZzEAcJ15YmZH0zJlXT2dctAEXv7iXw/TGAI8B1FW72XrptZ6yyPxVQ9kIUJJE8QdrLOditfVF5hQpx3FP8owtm8ZAHM6GeMrYoXC4ocLN1r7uI1VxTTcuWXCjmZ0ARWEcH7U3PvEKEbCYeltRcJKrAbnlOwhKLxx1a4yLVysr8SI3O2riSG1cM36La4bpJkAmaWqP6JfJ61H7dWJSJvMx2zvRRe4CuDhkDZLJo+SAji5jrarppyR5LwGMRRtIYn5Cf884PiGjgPPoBsfiHiDHku1eAk5bgzzdlAFqwtgZ1/Rhi7yXAOk5BuKvVP8/jOHc0WwzFt066rmKho+XIbmZAIjNdFPp7jYDakJ/jhLPJOA/O+J1Eu8PZVm2rfD60JeAzs6vp8U1vU3G9cJFG5Lf5b9uhLMVIEME7BV9x8mlrKz2wjQBwboIKbPHfQlQNWOvRYiOGYuAUKh+AbH1fbqXhZqq+SqtkKS4/OFTgN6fbwFyvwHb1gky3TnAxd+pUBmyu3ESEXDalwBKKF8CSkuvm0FCYsCaq7wcLyBEBwmNEpnwVuJbh8VxE+AVQowtDdJ9yOqX9wE3weMmAAA3uiWx3KRI/7e2Z+rne+XMOAlIK6MPjnCA6G1kjm5bWGz5qGWUAf5pDQqHl0wtlADnRgZQXznCgWOLvUuLR2xh4j4iuM3DA+IzEn+7Z1WIi2X9bWn92LRaPgRkPEoAvUaKFaT/6REBLLrV3QMct1GCo7VcBWRzmAMuBuWdOv1Emrz9fSMT3VVAsgaT2MzcYmPKAfcFFI+5xb9flLAQ3gFcvAWAhjw6X3b5TcPVV6w1ZZsXWZEk37BsR14FhMNLpjKOv7pdaMYMVTPiXgQ7Dhw2793VZT7Z8v6YBHCOd6aXyaaA/U2slt993Ycp9u83pscTuqom9AEnwfWbdycnDYXrzbt27MtZAJBLPed4t9UfDIkb/JxafYNxfJ7mxrqNzaaa0HPwQNTtWUXaP1iQZxUL8l6QNglHc/mqB8z2l3t8J7ETaasPeDJT9cn7u+g1S7eYrR1fjUFAU4Bx7CH7xTMFIe+YsJWKuPKqdebcSGNOAnjaBV8MyPdX5UwgyMVO5/8NyBapWpmsWH48AGfyeZ2CMXFz8qmRCFhzy+NWYmedA+MK+Vonr4QVsxveW7+p+TtSmSaGAIo97xpT4gmjSwpQNf0DZaKivat38d7uozPGm0cRRZxN+BeIFgQuVPlcdAAAAABJRU5ErkJggg=="
 
@@ -62,6 +62,17 @@ class UnselectableListWidget(QListWidget):
 
         return False
 
+    def remove_item(self, name):
+        for i in range(self.count()):
+            item = self.item(i)
+
+            if item is not None:
+                widget = self.itemWidget(item)
+
+                if widget.item_name == name:
+                    self.takeItem(i)
+                    break
+
 
 class ItemWidget(QWidget):
     def __init__(self, item_name, list_widget, parent=None):
@@ -99,6 +110,9 @@ class ItemWidget(QWidget):
         self.setStyleSheet("color: white; background-color: #2b2b2b; border: none; outline: none;")
 
     def on_button_prio_clicked(self):
+        if self.item_name not in self.list_widget.items:
+            return
+
         self.button_prio.setStyleSheet("border-radius: 5px; background-color: #00FF00; border: none;color: black")
         self.button_unprio.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
         self.button_muted.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
@@ -114,6 +128,9 @@ class ItemWidget(QWidget):
             self.list_widget.totalmute_items.remove(self.item_name)
 
     def on_button_unprio_clicked(self):
+        if self.item_name not in self.list_widget.items:
+            return
+
         self.button_prio.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
         self.button_unprio.setStyleSheet("border-radius: 5px; background-color: #FFEF00; border: none;")
         self.button_muted.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
@@ -130,6 +147,9 @@ class ItemWidget(QWidget):
             self.list_widget.totalmute_items.remove(self.item_name)
 
     def on_button_muted_clicked(self):
+        if self.item_name not in self.list_widget.items:
+            return
+
         self.button_prio.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
         self.button_unprio.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
         self.button_muted.setStyleSheet("border-radius: 5px; background-color: #D32F2F; border: none;")
@@ -301,6 +321,7 @@ class MainWindow(QWidget):
                     self.list_widget.items[p_name]['muted'] = False
                     self.list_widget.items[p_name]['actual_sound'] = -1
                     self.list_widget.items[p_name]['user_max_level'] = -1
+                    self.list_widget.items[p_name]['reg_time'] = datetime.datetime.now().timestamp()
 
         # update
         for name in self.list_widget.items:
@@ -310,6 +331,12 @@ class MainWindow(QWidget):
             if not self.list_widget.items[name]['muted']:
                 volume = self.list_widget.items[name]['session']._ctl.QueryInterface(ISimpleAudioVolume)
                 self.list_widget.items[name]['user_max_level'] = volume.GetMasterVolume()
+
+                # delete forgotten processes
+                if name not in self.list_widget.prio_items and name not in self.list_widget.totalmute_items:
+                    if self.list_widget.items[name]['reg_time'] + 5 * 60 < datetime.datetime.now().timestamp():
+                        del self.list_widget.items[name]
+                        self.list_widget.remove_item(name)
 
         # mute unprio
         if self.list_widget.is_prio_playing():

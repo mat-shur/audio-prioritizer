@@ -62,6 +62,17 @@ class UnselectableListWidget(QListWidget):
 
         return False
 
+    def remove_item(self, name):
+        for i in range(self.count()):
+            item = self.item(i)
+
+            if item is not None:
+                widget = self.itemWidget(item)
+
+                if widget.item_name == name:
+                    self.takeItem(i)
+                    break
+
 
 class ItemWidget(QWidget):
     def __init__(self, item_name, list_widget, parent=None):
@@ -99,6 +110,9 @@ class ItemWidget(QWidget):
         self.setStyleSheet("color: white; background-color: #2b2b2b; border: none; outline: none;")
 
     def on_button_prio_clicked(self):
+        if self.item_name not in self.list_widget.items:
+            return
+
         self.button_prio.setStyleSheet("border-radius: 5px; background-color: #00FF00; border: none;color: black")
         self.button_unprio.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
         self.button_muted.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
@@ -114,6 +128,9 @@ class ItemWidget(QWidget):
             self.list_widget.totalmute_items.remove(self.item_name)
 
     def on_button_unprio_clicked(self):
+        if self.item_name not in self.list_widget.items:
+            return
+
         self.button_prio.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
         self.button_unprio.setStyleSheet("border-radius: 5px; background-color: #FFEF00; border: none;")
         self.button_muted.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
@@ -130,6 +147,9 @@ class ItemWidget(QWidget):
             self.list_widget.totalmute_items.remove(self.item_name)
 
     def on_button_muted_clicked(self):
+        if self.item_name not in self.list_widget.items:
+            return
+
         self.button_prio.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
         self.button_unprio.setStyleSheet("border-radius: 5px; background-color: gray; border: none;")
         self.button_muted.setStyleSheet("border-radius: 5px; background-color: #D32F2F; border: none;")
@@ -301,15 +321,22 @@ class MainWindow(QWidget):
                     self.list_widget.items[p_name]['muted'] = False
                     self.list_widget.items[p_name]['actual_sound'] = -1
                     self.list_widget.items[p_name]['user_max_level'] = -1
+                    self.list_widget.items[p_name]['reg_time'] = datetime.datetime.now().timestamp()
 
         # update
-        for name in self.list_widget.items:
+        for name in list(self.list_widget.items):
             volume = self.list_widget.items[name]['session']._ctl.QueryInterface(IAudioMeterInformation)
             self.list_widget.items[name]['is_playing'] = self.list_widget.items[name]['actual_sound'] > 0
             self.list_widget.items[name]['actual_sound'] = volume.GetPeakValue()
             if not self.list_widget.items[name]['muted']:
                 volume = self.list_widget.items[name]['session']._ctl.QueryInterface(ISimpleAudioVolume)
                 self.list_widget.items[name]['user_max_level'] = volume.GetMasterVolume()
+
+                # delete forgotten processes
+                if name not in self.list_widget.prio_items and name not in self.list_widget.totalmute_items:
+                    if self.list_widget.items[name]['reg_time'] + 5*60 < datetime.datetime.now().timestamp():
+                        del self.list_widget.items[name]
+                        self.list_widget.remove_item(name)
 
         # mute unprio
         if self.list_widget.is_prio_playing():
