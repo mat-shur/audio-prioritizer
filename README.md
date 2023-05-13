@@ -31,6 +31,7 @@ Download .pyw from repository and run it (just double click).
 
 - to restore the interface, left-click on the icon in the system tray
 - to close the script, right-click on the icon in the system tray and select "quit"
+- processes that are not present in the system process list for more than 5 minutes and do not have assigned priorities are automatically removed from the list
 
 `if multiple priority programs are selected, the more prioritized one will always mute the less prioritized ones`
 
@@ -48,5 +49,6 @@ Download .pyw from repository and run it (just double click).
 
 ## To Do
 - Saving priorities on restart
-- Removing unnecessary individual programs from the list
-- Updating slider styles in the list
+- ~~Removing unnecessary individual programs from the list~~ 
+- ~~Updating slider styles in the list~~ 
+- ~~Fixing the program logic halt during sleep mode~~ 
