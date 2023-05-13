@@ -21,19 +21,23 @@ Download .pyw from repository and run it (just double click).
 1) Turn on music in the programs for which you want to set priorities.
 
 2) In the script interface, set the priorities according to the screenshot below.
-![](/Screenshots/introduction.png?raw=true "howto")
+<p align="center">
+  <img src="https://github.com/mat-shur/audio-prioritizer/blob/main/Screenshots/introduction.png?raw=true" alt="howto"/>
+</p>
 
 3) Adjust the program muting level with the slider (to what level to mute non-priority programs).
 
 4) Close the script interface by clicking on the X (it will minimize to the system tray).
 
-- to restore the interface, double-click on the icon in the system tray
+- to restore the interface, left-click on the icon in the system tray
 - to close the script, right-click on the icon in the system tray and select "quit"
 
+`if multiple priority programs are selected, the more prioritized one will always mute the less prioritized ones`
 
 ## Screenshot
-
-![](/Screenshots/example.jpg?raw=true "Example")
+<p align="center">
+  <img src="https://github.com/mat-shur/audio-prioritizer/blob/main/Screenshots/example.jpg?raw=true" alt="example"/>
+</p>
 
 ## Technologies
 
@@ -41,3 +45,8 @@ Download .pyw from repository and run it (just double click).
 - PyQt5
 - Singletons
 - pycaw (Python Core Audio Windows Library)
+
+## To Do
+- Saving priorities on restart
+- Removing unnecessary individual programs from the list
+- Updating slider styles in the list
