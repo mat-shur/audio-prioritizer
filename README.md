@@ -48,6 +48,7 @@ Download .pyw from repository and run it (just double click).
 
 ## To Do
 - Saving priorities on restart
+- Restore sound levels when programs are closed, if certain processes were muted
 - ~~Removing unnecessary individual programs from the list~~ 
 - ~~Updating slider styles in the list~~ 
 - ~~Fixing the program logic halt during sleep mode~~ 
