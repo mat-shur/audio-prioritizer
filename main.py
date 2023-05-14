@@ -330,7 +330,7 @@ class MainWindow(QWidget):
                     self.list_widget.items[p_name]['muted'] = False
                     self.list_widget.items[p_name]['actual_sound'] = -1
                     self.list_widget.items[p_name]['user_max_level'] = -1
-                    self.list_widget.items[p_name]['reg_time'] = datetime.datetime.now().timestamp()
+                    self.list_widget.items[p_name]['last_time'] = datetime.datetime.now().timestamp()
 
         # update
         for name in list(self.list_widget.items):
@@ -343,9 +343,11 @@ class MainWindow(QWidget):
 
                 # delete forgotten processes
                 if name not in self.list_widget.prio_items and name not in self.list_widget.totalmute_items:
-                    if self.list_widget.items[name]['reg_time'] + 5*60 < datetime.datetime.now().timestamp():
+                    if self.list_widget.items[name]['last_time'] + 5 < datetime.datetime.now().timestamp():
                         del self.list_widget.items[name]
                         self.list_widget.remove_item(name)
+                else:
+                    self.list_widget.items[name]['last_time'] = datetime.datetime.now().timestamp()
 
         # mute unprio
         if self.list_widget.is_prio_playing():
