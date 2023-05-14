@@ -343,7 +343,7 @@ class MainWindow(QWidget):
 
                 # delete forgotten processes
                 if name not in self.list_widget.prio_items and name not in self.list_widget.totalmute_items:
-                    if self.list_widget.items[name]['last_time'] + 5 < datetime.datetime.now().timestamp():
+                    if self.list_widget.items[name]['last_time'] + 5*60 < datetime.datetime.now().timestamp():
                         del self.list_widget.items[name]
                         self.list_widget.remove_item(name)
                 else:
