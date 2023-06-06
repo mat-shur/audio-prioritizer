@@ -312,6 +312,16 @@ class MainWindow(QWidget):
     def audio_prioritizer(self):
         sessions = AudioUtilities.GetAllSessions()
 
+        # delete forgotten processes
+        for p_name in list(self.list_widget.items.keys()):
+            if not self.list_widget.items[p_name]['muted']:
+                if p_name not in self.list_widget.prio_items and p_name not in self.list_widget.totalmute_items:
+                    if self.list_widget.items[p_name]['last_time'] + 5 * 60 < datetime.datetime.now().timestamp():
+                        del self.list_widget.items[p_name]
+                        self.list_widget.remove_item(p_name)
+                else:
+                    self.list_widget.items[p_name]['last_time'] = datetime.datetime.now().timestamp()
+
         for session in sessions:
             if session.Process:
                 p_name = session.Process.name()
@@ -332,63 +342,71 @@ class MainWindow(QWidget):
                     self.list_widget.items[p_name]['user_max_level'] = -1
                     self.list_widget.items[p_name]['last_time'] = datetime.datetime.now().timestamp()
 
-        # update
-        for name in list(self.list_widget.items):
-            volume = self.list_widget.items[name]['session']._ctl.QueryInterface(IAudioMeterInformation)
-            self.list_widget.items[name]['is_playing'] = self.list_widget.items[name]['actual_sound'] > 0
-            self.list_widget.items[name]['actual_sound'] = volume.GetPeakValue()
-            if not self.list_widget.items[name]['muted']:
-                volume = self.list_widget.items[name]['session']._ctl.QueryInterface(ISimpleAudioVolume)
-                self.list_widget.items[name]['user_max_level'] = volume.GetMasterVolume()
-
-                # delete forgotten processes
-                if name not in self.list_widget.prio_items and name not in self.list_widget.totalmute_items:
-                    if self.list_widget.items[name]['last_time'] + 5*60 < datetime.datetime.now().timestamp():
-                        del self.list_widget.items[name]
-                        self.list_widget.remove_item(name)
-                else:
-                    self.list_widget.items[name]['last_time'] = datetime.datetime.now().timestamp()
+                # update
+                if p_name in self.list_widget.items:
+                    volume = session._ctl.QueryInterface(IAudioMeterInformation)
+                    self.list_widget.items[p_name]['is_playing'] = volume.GetPeakValue() > 0
+                    self.list_widget.items[p_name]['actual_sound'] = volume.GetPeakValue()
+                    if not self.list_widget.items[p_name]['muted']:
+                        volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+                        self.list_widget.items[p_name]['user_max_level'] = volume.GetMasterVolume()
 
         # mute unprio
         if self.list_widget.is_prio_playing():
-            for name in self.list_widget.items:
-                volume = self.list_widget.items[name]['session']._ctl.QueryInterface(ISimpleAudioVolume)
-                if name not in self.list_widget.prio_items:
-                    if name not in self.list_widget.totalmute_items:
-                        if volume.GetMasterVolume != self.slider.value()/100:
-                            volume.SetMasterVolume((self.slider.value()/100), None)
-                            self.list_widget.items[name]['muted'] = True
-                elif len(self.list_widget.prio_items) > 1:
-                    if self.list_widget.is_lower_prio(name):
-                        if volume.GetMasterVolume != self.slider.value()/100:
-                            volume.SetMasterVolume((self.slider.value()/100), None)
-                            self.list_widget.items[name]['muted'] = True
-                else:
-                    if volume.GetMasterVolume != self.list_widget.items[name]['user_max_level']:
-                        volume.SetMasterVolume(self.list_widget.items[name]['user_max_level'], None)
-                        self.list_widget.items[name]['muted'] = False
+            for session in sessions:
+                if session.Process:
+                    p_name = session.Process.name()
+
+                    if p_name in self.list_widget.items:
+                        volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+                        if p_name not in self.list_widget.prio_items:
+                            if p_name not in self.list_widget.totalmute_items:
+                                if volume.GetMasterVolume != self.slider.value()/100:
+                                    volume.SetMasterVolume((self.slider.value()/100), None)
+                                    self.list_widget.items[p_name]['muted'] = True
+                        elif len(self.list_widget.prio_items) > 1:
+                            if self.list_widget.is_lower_prio(p_name):
+                                if volume.GetMasterVolume != self.slider.value()/100:
+                                    volume.SetMasterVolume((self.slider.value()/100), None)
+                                    self.list_widget.items[p_name]['muted'] = True
+                        else:
+                            if volume.GetMasterVolume != self.list_widget.items[p_name]['user_max_level']:
+                                volume.SetMasterVolume(self.list_widget.items[p_name]['user_max_level'], None)
+                                self.list_widget.items[p_name]['muted'] = False
         else:
-            for name in self.list_widget.items:
-                if name not in self.list_widget.totalmute_items:
-                    volume = self.list_widget.items[name]['session']._ctl.QueryInterface(ISimpleAudioVolume)
-                    if volume.GetMasterVolume != self.list_widget.items[name]['user_max_level']:
-                        volume.SetMasterVolume(self.list_widget.items[name]['user_max_level'], None)
-                        self.list_widget.items[name]['muted'] = False
+            for session in sessions:
+                if session.Process:
+                    p_name = session.Process.name()
+
+                    if p_name in self.list_widget.items:
+                        if p_name not in self.list_widget.totalmute_items:
+                            volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+                            if volume.GetMasterVolume != self.list_widget.items[p_name]['user_max_level']:
+                                volume.SetMasterVolume(self.list_widget.items[p_name]['user_max_level'], None)
+                                self.list_widget.items[p_name]['muted'] = False
 
         # total mute
         if self.list_widget.totalmute_items:
             if self.list_widget.is_any_playing():
-                for name in self.list_widget.totalmute_items:
-                    volume = self.list_widget.items[name]['session']._ctl.QueryInterface(ISimpleAudioVolume)
-                    if volume.GetMasterVolume != self.slider.value()/100:
-                        volume.SetMasterVolume((self.slider.value()/100), None)
-                        self.list_widget.items[name]['muted'] = True
+                for session in sessions:
+                    if session.Process:
+                        p_name = session.Process.name()
+
+                        if p_name in self.list_widget.totalmute_items:
+                            volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+                            if volume.GetMasterVolume != self.slider.value() / 100:
+                                volume.SetMasterVolume((self.slider.value() / 100), None)
+                                self.list_widget.items[p_name]['muted'] = True
             else:
-                for name in self.list_widget.totalmute_items:
-                    volume = self.list_widget.items[name]['session']._ctl.QueryInterface(ISimpleAudioVolume)
-                    if volume.GetMasterVolume != self.list_widget.items[name]['user_max_level']:
-                        volume.SetMasterVolume(self.list_widget.items[name]['user_max_level'], None)
-                        self.list_widget.items[name]['muted'] = False
+                for session in sessions:
+                    if session.Process:
+                        p_name = session.Process.name()
+
+                        if p_name in self.list_widget.totalmute_items:
+                            volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+                            if volume.GetMasterVolume != self.list_widget.items[p_name]['user_max_level']:
+                                volume.SetMasterVolume(self.list_widget.items[p_name]['user_max_level'], None)
+                                self.list_widget.items[p_name]['muted'] = False
 
 
 def terminal_kill_handler(_, __):
